@@ -3,6 +3,7 @@ import json
 import os
 import platform
 import sys
+import urllib.request
 
 
 def _lib_name():
@@ -44,6 +45,18 @@ def get_info():
     }
 
 
+def send(message, url):
+    data = json.dumps(message, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        return resp.status, resp.read().decode("utf-8")
+
+
 if __name__ == "__main__":
     info = get_info()
     message = {
@@ -54,3 +67,7 @@ if __name__ == "__main__":
         "host": info["host"],
     }
     print(json.dumps(message, ensure_ascii=False))
+
+    if len(sys.argv) > 1:
+        status, body = send(message, sys.argv[1])
+        print(f"status={status} body={body}")
